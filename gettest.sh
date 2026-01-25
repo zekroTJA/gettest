@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 GETTEST_EDITOR=$EDITOR
-GETTEST_DIR=${XDG_DATA_HOME:-$HOME/.local/share/gettest}
+GETTEST_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/gettest"
 
 # source .env files
 set -a && source *.env && set +a
