@@ -10,6 +10,7 @@ GETTEST_TEMPLATE_DIR=${GETTEST_TEMPLATE_DIR:-"${GETTEST_DIR}/templates"}
 GETTEST_PROJECTS_DIR=${GETTEST_PROJECTS_DIR:-"${GETTEST_DIR}/projects"}
 
 CLR_RED="\x1b[31m"
+CLR_GREEN="\033[38;5;41m"
 CLR_RESET="\x1b[0m"
 
 BUILTIN_TEMPLATE_MAX_LEN=6 # python
@@ -20,6 +21,10 @@ main() {
         case "$1" in
             -h | --help)
                 print_help
+                exit 0
+                ;;
+            -d | --delete)
+                delete_projects
                 exit 0
                 ;;
             *)
@@ -44,12 +49,18 @@ print_help() {
     echo -e "\tname               Name to store the project as" >&2
     echo -e "" >&2
     echo -e "Options:" >&2
+    echo -e "\t-d, --delete       Select projects to delete"
     echo -e "\t-h, --help         Show this help message and exit" >&2
 }
 
 print_error() {
     local message=$1
     echo -e "${CLR_RED}error:${CLR_RESET} ${message}" >&2
+}
+
+print_info() {
+    local message=$1
+    echo -e "${CLR_GREEN}info:${CLR_RESET} ${message}" >&2
 }
 
 sanitize_name() {
@@ -154,6 +165,18 @@ get_project_dir() {
 }
 
 search_projects() {
+    local fzf_args=(
+        --delimiter='\t'
+        --with-nth=2..
+        --tabstop=4
+        --cycle
+        --no-sort
+    )
+
+    if [[ $1 == "multi" ]]; then
+        fzf_args+=("--multi")
+    fi
+
     if [[ ! -d "${GETTEST_PROJECTS_DIR}" ]]; then
         print_error "No projects available to list."
         return 1
@@ -169,14 +192,16 @@ search_projects() {
     fi
 
     for project in "${GETTEST_PROJECTS_DIR}"/*; do
-        source "${project}/.gettest.meta"
-        printf "%s\t%s\t%-${max_template_name_len}s\t%s\n" "$project" "$date" "$template" "$name"
-    done | sort -k 2 -k 1 | fzf --delimiter '\t' --with-nth 2.. --tabstop 4 --cycle --no-sort
+        if source "${project}/.gettest.meta" 2>/dev/null; then
+            printf "%s\t%s\t%-${max_template_name_len}s\t%s\n" "$project" "$date" "$template" "$name"
+        fi
+    done | sort -k 2 -k 1 -r | fzf "${fzf_args[@]}"
 }
 
 open_project() {
     if ! selected_entry=$(search_projects); then
-        return
+        print_error "Aborted."
+        exit 1
     fi
 
     if [[ -z $selected_entry ]]; then
@@ -190,6 +215,35 @@ open_project() {
         print_error "Editor process failed '$GETTEST_EDITOR'"
         rm -rf "${project_dir}"
         exit 1
+    fi
+}
+
+delete_projects() {
+    export FZF_DEFAULT_OPTS="--header=\"Select projects to delete (tab to select multiple entries)\""
+    if ! selected_entries=$(search_projects multi); then
+        print_error "Aborted."
+        exit 1
+    fi
+
+    if [[ -z $selected_entries ]]; then
+        print_error "No project selected."
+        exit 1
+    fi
+
+    local deleted=0
+    local failed=1
+    while read -r dir _; do
+        if rm -r "$dir"; then
+            ((deleted++))
+        else
+            ((failed++))
+        fi
+    done <<< "$selected_entries"
+
+    print_info "Deleted $deleted projects."
+
+    if [[ $failed -gt 0 ]]; then
+        print_error "Failed to delete $failed projects."
     fi
 }
 
