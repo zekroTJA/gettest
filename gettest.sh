@@ -93,7 +93,7 @@ new_project() {
                 template=plain
                 # no-op
                 ;;
-            s | sh | bash)
+            sh | bash)
                 template=bash
                 template_bash
                 ;;
