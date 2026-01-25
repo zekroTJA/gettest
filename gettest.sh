@@ -26,7 +26,7 @@ GETTEST_EDITOR=$EDITOR
 GETTEST_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/gettest"
 
 # source .env files
-set -a && source *.env && set +a
+set -a && source *.env 2>/dev/null && set +a
 
 GETTEST_TEMPLATE_DIR=${GETTEST_TEMPLATE_DIR:-"${GETTEST_DIR}/templates"}
 GETTEST_PROJECTS_DIR=${GETTEST_PROJECTS_DIR:-"${GETTEST_DIR}/projects"}
@@ -98,13 +98,15 @@ new_project() {
     local project_dir="$(get_project_dir "$template" "$name")"
     local now=$(date +'%Y/%m/%d %H:%M')
 
-    template_path=$(realpath "${GETTEST_TEMPLATE_DIR}/${template}.sh")
+    if [[ -f "${GETTEST_TEMPLATE_DIR}/${template}.sh" ]]; then
+        template_path=$(realpath "${GETTEST_TEMPLATE_DIR}/${template}.sh")
+    fi
 
     mkdir -p "${project_dir}"
     pushd "${project_dir}" >/dev/null
 
     local exit_code=0
-    if [[ -f $template_path ]]; then
+    if [[ -n $template_path ]]; then
         if ! . "$template_path"; then
             print_error "Custom template script '$template_path' failed!"
             exit_code=1
