@@ -165,6 +165,11 @@ get_project_dir() {
 }
 
 search_projects() {
+    if ! command -v fzf >/dev/null 2>&1; then
+        print_error "fzf is not installed: https://junegunn.github.io/fzf/installation"
+        exit 1
+    fi
+
     local fzf_args=(
         --delimiter='\t'
         --with-nth=2..
