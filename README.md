@@ -4,6 +4,9 @@ A simple script to quickly create and manage testing directories from templates.
 
 It is designed so that you can spin up a test directory as quickly and frictionless as possible but also keeping all your projects managed so that you can find them later when you need them.
 
+> [!NOTE]  
+> This script levearges the strength of [`fzf`](https://junegunn.github.io/fzf/), so make sure you have it installed to use the full functionality of this script.
+
 ## Usage
 
 Simply use the following command to get a new testing directory.
