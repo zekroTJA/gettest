@@ -63,6 +63,10 @@ main() {
                 delete_projects
                 exit 0
                 ;;
+            -t | --templates)
+                print_available_templates ""
+                exit 0
+                ;;
             *)
                 args+=("$1")
                 ;;
@@ -86,7 +90,8 @@ print_help() {
     echo -e "" >&2
     echo -e "Options:" >&2
     echo -e "\t-d, --delete       Select projects to delete"
-    echo -e "\t-h, --help         Show this help message and exit" >&2
+    echo -e "\t-h, --help         Show this help message" >&2
+    echo -e "\t-t, --templates    Show a list of available templates" >&2
 }
 
 print_error() {
