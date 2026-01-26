@@ -22,11 +22,13 @@
 #
 # Project: https://github.com/zekrotja/gettest
 
+# shellcheck disable=SC2155,SC1090,SC1091
+
 GETTEST_EDITOR=${GETTEST_EDITOR:-${EDITOR}}
 GETTEST_DIR="${GETTEST_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/gettest}"
 
 # source .env files
-set -a && source *.env 2>/dev/null && set +a
+set -a && source ./*.env 2>/dev/null && set +a
 
 GETTEST_TEMPLATE_DIR=${GETTEST_TEMPLATE_DIR:-"${GETTEST_DIR}/templates"}
 GETTEST_PROJECTS_DIR=${GETTEST_PROJECTS_DIR:-"${GETTEST_DIR}/projects"}
@@ -56,7 +58,7 @@ main() {
         shift
     done
 
-    if [[ -z "$args" ]]; then
+    if [[ -z ${args[0]} ]]; then
         open_project
     else
         new_project "${args[@]}"
@@ -93,7 +95,7 @@ sanitize_name() {
 new_project() {
     local template=$(tr '[:upper:]' '[:lower:]' <<< "$1")
     shift
-    local name="$@"
+    local name="$*"
 
     local project_dir="$(get_project_dir "$template" "$name")"
     local now=$(date +'%Y/%m/%d %H:%M')
@@ -103,7 +105,11 @@ new_project() {
     fi
 
     mkdir -p "${project_dir}"
-    pushd "${project_dir}" >/dev/null
+    if ! pushd "${project_dir}" >/dev/null; then
+        print_error "Failed changing into project directory '$project_dir'"
+        rm -rf "${project_dir}"
+        exit 1
+    fi
 
     local exit_code=0
     if [[ -n $template_path ]]; then
@@ -140,7 +146,7 @@ new_project() {
         esac
     fi
 
-    popd >/dev/null
+    popd >/dev/null || true
 
     if [[ $exit_code -gt 0 ]]; then
         rm -rf "${project_dir}"
@@ -222,6 +228,8 @@ search_projects() {
 
     for project in "${GETTEST_PROJECTS_DIR}"/*; do
         if source "${project}/.gettest.meta" 2>/dev/null; then
+            # The variables `date`, `template` and `name` are sourced from the `.gettest.meta` file.
+            # shellcheck disable=SC2154
             printf "%s\t%s\t%-${max_template_name_len}s\t%s\n" "$project" "$date" "$template" "$name"
         fi
     done | sort -k 2 -k 1 -r | fzf "${fzf_args[@]}"
