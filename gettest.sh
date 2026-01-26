@@ -33,11 +33,23 @@ set -a && source ./*.env 2>/dev/null && set +a
 GETTEST_TEMPLATE_DIR=${GETTEST_TEMPLATE_DIR:-"${GETTEST_DIR}/templates"}
 GETTEST_PROJECTS_DIR=${GETTEST_PROJECTS_DIR:-"${GETTEST_DIR}/projects"}
 
+GETTEST_TEMPLATE_DIR=$(realpath --canonicalize-missing "$GETTEST_TEMPLATE_DIR")
+GETTEST_PROJECTS_DIR=$(realpath --canonicalize-missing "$GETTEST_PROJECTS_DIR")
+
 CLR_RED="\x1b[31m"
 CLR_GREEN="\033[38;5;41m"
 CLR_RESET="\x1b[0m"
 
 BUILTIN_TEMPLATE_MAX_LEN=6 # python
+
+BUILTIN_TEMPLATES=(
+    "plain p"
+    "bash sh"
+    "python py"
+    "go"
+    "rust"
+    "node bun"
+)
 
 main() {
     local args=()
@@ -87,6 +99,31 @@ print_info() {
     echo -e "${CLR_GREEN}info:${CLR_RESET} ${message}" >&2
 }
 
+print_available_templates() {
+    local prefix=$1
+    for entry in "${BUILTIN_TEMPLATES[@]}"; do
+        read -r template alias <<< "$entry"
+        echo -n "$prefix$template"
+        if [[ -n $alias ]]; then
+            echo -n " ($alias)"
+        fi
+        echo ""
+    done
+
+    if [[ -d "$GETTEST_TEMPLATE_DIR" ]]; then
+        for entry in "${GETTEST_TEMPLATE_DIR}"/*.sh; do
+            entry="${entry##*/}"
+            entry="${entry%*.sh}"
+            echo "$prefix$entry"
+        done
+    fi
+}
+
+exists() {
+    local program=$1
+    command -v "$program" >/dev/null 2>&1
+}
+
 sanitize_name() {
     local input="$1"
     { tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-'; } <<< "$input"
@@ -119,15 +156,15 @@ new_project() {
         fi
     else
         case "$template" in
-            p | plain)
+            plain | p)
                 template=plain
                 # no-op
                 ;;
-            sh | bash)
+            bash | sh)
                 template=bash
                 template_bash
                 ;;
-            py | python)
+            python | py)
                 template=python
                 template_python
                 ;;
@@ -139,8 +176,12 @@ new_project() {
                 template=rust
                 template_rust
                 ;;
+            node | bun)
+                template=node
+                template_node
+                ;;
             *)
-                print_error "No template '${template}' found!"
+                print_error "No template '${template}' found!\n\nAvailable templates are:\n$(print_available_templates "  - ")"
                 exit_code=1
                 ;;
         esac
@@ -195,7 +236,7 @@ get_project_dir() {
 }
 
 search_projects() {
-    if ! command -v fzf >/dev/null 2>&1; then
+    if ! exists fzf; then
         print_error "fzf is not installed: https://junegunn.github.io/fzf/installation"
         exit 1
     fi
@@ -309,6 +350,15 @@ EOF
 
 template_rust() {
     cargo init . --bin --vcs none --quiet --name testproject
+}
+
+template_node() {
+    if exists bun; then
+        bun init --yes >/dev/null
+    else
+        npm init --yes >/dev/null
+        touch main.js
+    fi
 }
 
 #############################
