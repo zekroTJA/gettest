@@ -22,8 +22,8 @@
 #
 # Project: https://github.com/zekrotja/gettest
 
-GETTEST_EDITOR=$EDITOR
-GETTEST_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/gettest"
+GETTEST_EDITOR=${GETTEST_EDITOR:-${EDITOR}}
+GETTEST_DIR="${GETTEST_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/gettest}"
 
 # source .env files
 set -a && source *.env 2>/dev/null && set +a
