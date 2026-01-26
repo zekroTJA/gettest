@@ -47,11 +47,12 @@ Options:
 
 Currently, the following templates are built-in:
 
-- `plain` (aliases: `p`)
+- `plain` (alias: `p`)
 - `bash` (alias: `sh`)
-- `python` (aliases: `py`)
+- `python` (alias: `py`)
 - `go`
 - `rust`
+- `node` (alias: `bun`)
 
 ### Custom templates
 
