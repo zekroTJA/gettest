@@ -137,16 +137,14 @@ new_project() {
     local project_dir="$(get_project_dir "$template" "$name")"
     local now=$(date +'%Y/%m/%d %H:%M')
 
-    if [[ -f "${GETTEST_TEMPLATE_DIR}/${template}.sh" ]]; then
-        template_path=$(realpath "${GETTEST_TEMPLATE_DIR}/${template}.sh")
-    fi
-
     mkdir -p "${project_dir}"
     if ! pushd "${project_dir}" >/dev/null; then
         print_error "Failed changing into project directory '$project_dir'"
         rm -rf "${project_dir}"
         exit 1
     fi
+
+    template_path="${GETTEST_TEMPLATE_DIR}/${template}.sh"
 
     local exit_code=0
     if [[ -n $template_path ]]; then
