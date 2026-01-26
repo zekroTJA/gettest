@@ -260,7 +260,7 @@ delete_projects() {
     fi
 
     local deleted=0
-    local failed=1
+    local failed=0
     while read -r dir _; do
         if rm -r "$dir"; then
             ((deleted++))
