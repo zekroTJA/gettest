@@ -152,7 +152,7 @@ new_project() {
     template_path="${GETTEST_TEMPLATE_DIR}/${template}.sh"
 
     local exit_code=0
-    if [[ -n $template_path ]]; then
+    if [[ -f $template_path ]]; then
         if ! . "$template_path"; then
             print_error "Custom template script '$template_path' failed!"
             exit_code=1
