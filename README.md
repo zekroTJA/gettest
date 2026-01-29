@@ -7,6 +7,8 @@ It is designed so that you can spin up a test directory as quickly and frictionl
 > [!NOTE]  
 > This script levearges the strength of [`fzf`](https://junegunn.github.io/fzf/), so make sure you have it installed to use the full functionality of this script.
 
+![](.github/assets/demo.gif)
+
 ## Usage
 
 Simply use the following command to get a new testing directory.
