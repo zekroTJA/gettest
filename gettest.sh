@@ -51,6 +51,10 @@ BUILTIN_TEMPLATES=(
     "node bun"
 )
 
+if [[ $DEBUG == "1" ]]; then
+    set -x
+fi
+
 main() {
     local args=()
     while [[ -n $1 ]]; do
@@ -196,6 +200,8 @@ new_project() {
         rm -rf "${project_dir}"
         exit "$exit_code"
     fi
+
+    trap 'rm -rf "${project_dir}"; print_error "Aborted."; exit 1' SIGINT
 
     # shellcheck disable=SC2086
     if ! "$GETTEST_EDITOR" "$project_dir" $GETTEST_EDITOR_ARGS; then
