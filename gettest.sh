@@ -197,7 +197,8 @@ new_project() {
         exit "$exit_code"
     fi
 
-    if ! "$GETTEST_EDITOR" "$project_dir"; then
+    # shellcheck disable=SC2086
+    if ! "$GETTEST_EDITOR" "$project_dir" $GETTEST_EDITOR_ARGS; then
         print_error "Editor process failed '$GETTEST_EDITOR'"
         rm -rf "${project_dir}"
         exit 1
@@ -292,7 +293,8 @@ open_project() {
 
     read -r project_dir _ <<< "$selected_entry"
 
-    if ! "$GETTEST_EDITOR" "$project_dir"; then
+    # shellcheck disable=SC2086
+    if ! "$GETTEST_EDITOR" "$project_dir" $GETTEST_EDITOR_ARGS; then
         print_error "Editor process failed '$GETTEST_EDITOR'"
         rm -rf "${project_dir}"
         exit 1
